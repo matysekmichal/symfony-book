@@ -4,13 +4,13 @@ type: php:7.4
 
 runtime:
     extensions:
+        - pdo_pgsql
         - apcu
         - mbstring
         - sodium
         - ctype
         - iconv
         
-
 #variables:
 #    php:
 #        # uncomment on PHP 7.4+
@@ -20,6 +20,9 @@ build:
     flavor: none
 
 disk: 512
+
+relationships:
+    database: "db:postgresql"
 
 web:
     locations:
