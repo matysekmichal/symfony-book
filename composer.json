@@ -7,6 +7,7 @@
         "php": ">=8.0",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "easycorp/easyadmin-bundle": "^3",
         "sensio/framework-extra-bundle": "^6.1",
         "symfony/console": "5.2.*",
         "symfony/dotenv": "5.2.*",
@@ -14,6 +15,7 @@
         "symfony/framework-bundle": "5.2.*",
         "symfony/monolog-bundle": "^3.7",
         "symfony/orm-pack": "^2",
+        "symfony/twig-pack": "^1.0",
         "symfony/yaml": "5.2.*"
     },
     "require-dev": {
