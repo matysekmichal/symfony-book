@@ -22,14 +22,14 @@
         "symfony/twig-pack": "^1.0",
         "symfony/validator": "5.2.*",
         "symfony/yaml": "5.2.*",
-        "twig/intl-extra": "^3.3",
-        "ext-http": "*"
+        "twig/intl-extra": "^3.3"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
         "symfony/debug-bundle": "^5.2",
         "symfony/maker-bundle": "^1.33",
         "symfony/stopwatch": "^5.2",
+        "symfony/test-pack": "^1.0",
         "symfony/web-profiler-bundle": "^5.2"
     },
     "config": {
