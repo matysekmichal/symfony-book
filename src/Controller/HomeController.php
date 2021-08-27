@@ -7,13 +7,16 @@ use App\Entity\Conference;
 use App\Form\CommentFormType;
 use App\Repository\CommentRepository;
 use App\Repository\ConferenceRepository;
+use App\Services\SpamChecker\SpamCheckerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use http\Exception\RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -21,13 +24,11 @@ use Twig\Error\SyntaxError;
 
 class HomeController extends AbstractController
 {
-    private Environment $twig;
-    private EntityManagerInterface $entityManager;
 
-    public function __construct(Environment $twig, EntityManagerInterface $entityManager)
+    public function __construct(private Environment            $twig,
+                                private EntityManagerInterface $entityManager,
+                                private SpamCheckerInterface   $spamChecker)
     {
-        $this->twig = $twig;
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -47,6 +48,7 @@ class HomeController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws LoaderError
+     * @throws TransportExceptionInterface
      * @throws Exception
      */
     #[Route('/conferences/{slug}', name: 'conferences')]
@@ -57,6 +59,18 @@ class HomeController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $comment->setConference($conference);
+
+            $context = [
+                'user_ip' => $request->getClientIp(),
+                'user_agent' => $request->headers->get('user-agent'),
+                'referrer' => $request->headers->get('referer'),
+                'permalink' => $request->getUri(),
+            ];
+
+            if ($this->spamChecker->isCommentSpam($comment, $context)) {
+                throw new RuntimeException('Blatant spam, go away!');
+            }
+
             if ($photo = $form['photo']->getData()) {
                 $filename = bin2hex(random_bytes(6)) . '.' . $photo->guessExtension();
                 try {
