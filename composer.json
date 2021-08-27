@@ -16,6 +16,7 @@
         "symfony/mime": "5.2.*",
         "symfony/monolog-bundle": "^3.7",
         "symfony/orm-pack": "^2",
+        "symfony/security-bundle": "5.2.*",
         "symfony/string": "5.2.*",
         "symfony/twig-pack": "^1.0",
         "symfony/validator": "5.2.*",
