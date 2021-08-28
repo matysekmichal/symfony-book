@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Services\SpamChecker;
+namespace App\Tests\Unit\Services\SpamChecker;
 
 use App\Entity\Comment;
 use App\Services\SpamChecker\SpamChecker;
