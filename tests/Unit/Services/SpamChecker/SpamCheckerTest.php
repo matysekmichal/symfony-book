@@ -4,8 +4,8 @@ namespace App\Tests\Unit\Services\SpamChecker;
 
 use App\Entity\Comment;
 use App\Services\SpamChecker\SpamChecker;
-use RuntimeException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\Exception as HttpException;
@@ -33,7 +33,7 @@ class SpamCheckerTest extends TestCase
         $spamChecker = new SpamChecker($httpClient, '123456');
         $isSpam = $spamChecker->isCommentSpam(new Comment(), []);
 
-        $this->assertTrue($isSpam);
+        $this->assertEquals(1, $isSpam);
     }
 
     /**
@@ -45,7 +45,7 @@ class SpamCheckerTest extends TestCase
         $spamChecker = new SpamChecker($httpClient, '123456');
         $isSpam = $spamChecker->isCommentSpam(new Comment(), []);
 
-        $this->assertFalse($isSpam);
+        $this->assertEquals(0, $isSpam);
     }
 
     /**
@@ -57,6 +57,6 @@ class SpamCheckerTest extends TestCase
         $spamChecker = new SpamChecker($httpClient, '123456');
         $isSpam = $spamChecker->isCommentSpam(new Comment(), []);
 
-        $this->assertTrue($isSpam);
+        $this->assertEquals(2, $isSpam);
     }
 }

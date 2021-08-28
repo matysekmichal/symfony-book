@@ -20,7 +20,7 @@ final class SpamChecker implements SpamCheckerInterface
     /**
      * @inheritDoc
      */
-    public function isCommentSpam(Comment $comment, array $context): bool
+    public function isCommentSpam(Comment $comment, array $context): int
     {
         $response = $this->client->request('POST', $this->endpoint, [
             'body' => array_merge($context, [
@@ -38,7 +38,7 @@ final class SpamChecker implements SpamCheckerInterface
 
         $headers = $response->getHeaders();
         if ('discard' === ($headers['x-aksamit-pro-tip'][0] ?? '')) {
-            return true;
+            return 2;
         }
 
         $content = $response->getContent();
@@ -46,6 +46,6 @@ final class SpamChecker implements SpamCheckerInterface
             throw new RuntimeException(sprintf('Unable to check for spam: %s (%s).', $content, $headers['x-akismet-debug-help'][0]));
         }
 
-        return 'true' === $content;
+        return 'true' === $content ? 1 : 0;
     }
 }

@@ -15,5 +15,5 @@ interface SpamCheckerInterface
      * @throws HttpClientException\TransportExceptionInterface
      * @throws HttpClientException\ServerExceptionInterface
      */
-    public function isCommentSpam(Comment $comment, array $context): bool;
+    public function isCommentSpam(Comment $comment, array $context): int;
 }
