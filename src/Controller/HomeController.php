@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -39,16 +38,19 @@ class HomeController extends AbstractController
     #[Route('/', name: 'homepage')]
     public function index(ConferenceRepository $repository): Response
     {
-        return new Response($this->twig->render('conference/index.html.twig', [
+        $response = new Response($this->twig->render('conference/index.html.twig', [
             'conferences' => $repository->findAll(),
         ]));
+
+        $response->setSharedMaxAge(3600);
+
+        return $response;
     }
 
     /**
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws LoaderError
-     * @throws TransportExceptionInterface
      * @throws Exception
      */
     #[Route('/conferences/{slug}', name: 'conferences')]
@@ -93,5 +95,22 @@ class HomeController extends AbstractController
             'next' => min(count($paginator), $offset + CommentRepository::PAGINATOR_PER_PAGE),
             'comment_form' => $form->createView(),
         ]));
+    }
+
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
+    #[Route('/conference_header', name: 'conference_header')]
+    public function conferenceHeader(ConferenceRepository $conferenceRepository): Response
+    {
+        $response = new Response($this->twig->render('conference/header.html.twig', [
+            'conferences' => $conferenceRepository->findAll(),
+        ]));
+
+        $response->setSharedMaxAge(3600);
+
+        return $response;
     }
 }
