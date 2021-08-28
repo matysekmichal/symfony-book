@@ -3,6 +3,7 @@
 namespace App\Message;
 
 use App\Repository\CommentRepository;
+use App\Services\ImageOptimizer\ImageOptimizerInterface;
 use App\Services\SpamChecker\SpamCheckerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -17,14 +18,16 @@ use Symfony\Contracts\HttpClient\Exception as HttpClientException;
 final class CommentMessageHandler implements MessageHandlerInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private SpamCheckerInterface   $spamChecker,
-        private CommentRepository      $commentRepository,
-        private MessageBusInterface    $bus,
-        private WorkflowInterface      $commentStateMachine,
-        private MailerInterface        $mailer,
-        private string                 $adminEmail,
-        private LoggerInterface        $logger)
+        private EntityManagerInterface  $entityManager,
+        private SpamCheckerInterface    $spamChecker,
+        private CommentRepository       $commentRepository,
+        private MessageBusInterface     $bus,
+        private WorkflowInterface       $commentStateMachine,
+        private MailerInterface         $mailer,
+        private ImageOptimizerInterface $imageOptimizer,
+        private string                  $adminEmail,
+        private string                  $photoDir,
+        private LoggerInterface         $logger)
     {
     }
 
@@ -62,6 +65,12 @@ final class CommentMessageHandler implements MessageHandlerInterface
                 ->to($this->adminEmail)
                 ->context(['comment' => $comment])
             );
+        } elseif ($this->commentStateMachine->can($comment, 'optimize')) {
+            if ($comment->getPhotoFilename()) {
+                $this->imageOptimizer->resize($this->photoDir . '/' . $comment->getPhotoFilename());
+            }
+            $this->commentStateMachine->apply($comment, 'optimize');
+            $this->entityManager->flush();
         } elseif ($this->logger) {
             $this->logger->debug('Dropping comment message', ['comment' => $comment->getId(), 'state' => $comment->getState()]);
         }
