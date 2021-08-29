@@ -2,16 +2,16 @@
 
 namespace App\Message;
 
+use App\Notifications\CommentReviewNotification;
 use App\Repository\CommentRepository;
 use App\Services\ImageOptimizer\ImageOptimizerInterface;
 use App\Services\SpamChecker\SpamCheckerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Bridge\Twig\Mime\NotificationEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Notifier\NotifierInterface;
 use Symfony\Component\Workflow\WorkflowInterface;
 use Symfony\Contracts\HttpClient\Exception as HttpClientException;
 
@@ -23,9 +23,8 @@ final class CommentMessageHandler implements MessageHandlerInterface
         private CommentRepository       $commentRepository,
         private MessageBusInterface     $bus,
         private WorkflowInterface       $commentStateMachine,
-        private MailerInterface         $mailer,
+        private NotifierInterface       $notifier,
         private ImageOptimizerInterface $imageOptimizer,
-        private string                  $adminEmail,
         private string                  $photoDir,
         private LoggerInterface         $logger)
     {
@@ -58,13 +57,7 @@ final class CommentMessageHandler implements MessageHandlerInterface
 
             $this->bus->dispatch($message);
         } elseif ($this->commentStateMachine->can($comment, 'publish') || $this->commentStateMachine->can($comment, 'publish_ham')) {
-            $this->mailer->send((new NotificationEmail())
-                ->subject('New comment posted')
-                ->htmlTemplate('emails/comment_notification.html.twig')
-                ->from($this->adminEmail)
-                ->to($this->adminEmail)
-                ->context(['comment' => $comment])
-            );
+            $this->notifier->send(new CommentReviewNotification($comment), ...$this->notifier->getAdminRecipients());
         } elseif ($this->commentStateMachine->can($comment, 'optimize')) {
             if ($comment->getPhotoFilename()) {
                 $this->imageOptimizer->resize($this->photoDir . '/' . $comment->getPhotoFilename());
